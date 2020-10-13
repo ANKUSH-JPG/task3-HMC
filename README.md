@@ -24,12 +24,12 @@
 1. Log in to your IAM account using CMD.
 2. we will now create a VPC . Terraform code for the same is given below:
 
-        resource "aws_vpc" "naitik2_vpc" {
+        resource "aws_vpc" "ankush_vpc" {
             cidr_block = "192.168.0.0/16"
             instance_tenancy = "default"
             enable_dns_hostnames = true
             tags = {
-              Name = "naitik2_vpc"
+              Name = "ankush_vpc"
             }
           }
           
@@ -39,65 +39,65 @@
     
   The terraform code to create both the Private & the Public Subnet is as follows :
   
-     resource "aws_subnet" "naitik2_public_subnet" {
-            vpc_id = "${aws_vpc.naitik2_vpc.id}"
+     resource "aws_subnet" "ankush_public_subnet" {
+            vpc_id = "${aws_vpc.ankush_vpc.id}"
             cidr_block = "192.168.0.0/24"
             availability_zone = "ap-south-1a"
             map_public_ip_on_launch = "true"
             tags = {
-              Name = "naitik2_public_subnet"
+              Name = "ankush_public_subnet"
             }
           }
           
           
           
-          resource "aws_subnet" "naitik2_private_subnet" {
-            vpc_id = "${aws_vpc.naitik2_vpc.id}"
+          resource "aws_subnet" "ankush_private_subnet" {
+            vpc_id = "${aws_vpc.ankush_vpc.id}"
             cidr_block = "192.168.1.0/24"
             availability_zone = "ap-south-1a"
             tags = {
-              Name = "naitik2_private_subnet"
+              Name = "ankush_private_subnet"
             }
           }
           
           
 4. In this step, we will be creating a public-facing internet gateway. An internet gateway is a horizontally scaled, redundant, and highly available VPC component that allows communication between your VPC and the internet.
 
-        resource "aws_internet_gateway" "naitik2_gw" {
-            vpc_id = "${aws_vpc.naitik2_vpc.id}"
+        resource "aws_internet_gateway" "ankush_gw" {
+            vpc_id = "${aws_vpc.ankush_vpc.id}"
             tags = {
-              Name = "naitik2_gw"
+              Name = "ankush_gw"
             }
           }
           
 5. Next, we create a Routing Table & associate it with the Public Subnet. The Terraform code for the same is stated below:
 
-       resource "aws_route_table" "naitik2_rt" {
-            vpc_id = "${aws_vpc.naitik2_vpc.id}"
+       resource "aws_route_table" "ankush_rt" {
+            vpc_id = "${aws_vpc.ankush_vpc.id}"
 
             route {
               cidr_block = "0.0.0.0/0"
-              gateway_id = "${aws_internet_gateway.naitik2_gw.id}"
+              gateway_id = "${aws_internet_gateway.ankush_gw.id}"
             }
 
             tags = {
-              Name = "naitik2_rt"
+              Name = "ankush_rt"
             }
           }
 
 
-          resource "aws_route_table_association" "naitik2_rta" {
-            subnet_id = "${aws_subnet.naitik2_public_subnet.id}"
-            route_table_id = "${aws_route_table.naitik2_rt.id}"
+          resource "aws_route_table_association" "ankush_rta" {
+            subnet_id = "${aws_subnet.ankush_public_subnet.id}"
+            route_table_id = "${aws_route_table.ankush_rt.id}"
           }
           
          
 6. Now in this step we will create a security group which I will be using while launching WordPress. This security group has permissions for outside connectivity.
 
-        resource "aws_security_group" "naitik2_sg" {
+        resource "aws_security_group" "ankush_sg" {
 
-            name        = "naitik2_sg"
-            vpc_id      = "${aws_vpc.naitik2_vpc.id}"
+            name        = "ankush_sg"
+            vpc_id      = "${aws_vpc.ankush_vpc.id}"
 
 
             ingress {
@@ -148,17 +148,17 @@
              
               tags = {
 
-              Name = "naitik2_sg"
+              Name = "ankush_sg"
             }
           }
           
           
  7. we will be creating one more security group, which we will be using to launch MySQL database. This security group will keep MySQL accessible only through WordPress and not through the outside world.
  
-        resource "aws_security_group" "naitik2_sg_private" {
+        resource "aws_security_group" "ankush_sg_private" {
 
-            name        = "naitik2_sg_private"
-            vpc_id      = "${aws_vpc.naitik2_vpc.id}"
+            name        = "ankush_sg_private"
+            vpc_id      = "${aws_vpc.ankush_vpc.id}"
           
             ingress {
             
@@ -166,7 +166,7 @@
              from_port   = 3306
              to_port     = 3306
              protocol    = "tcp"
-             security_groups = [aws_security_group.naitik2_sg.id]
+             security_groups = [aws_security_group.ankush_sg.id]
              
            }
 
@@ -177,7 +177,7 @@
              from_port   = -1
              to_port     = -1
              protocol    = "icmp"
-             security_groups = [aws_security_group.naitik2_sg.id]
+             security_groups = [aws_security_group.ankush_sg.id]
              
            }
 
@@ -193,7 +193,7 @@
           
           tags = {
 
-              Name = "naitik2_sg_private"
+              Name = "ankush_sg_private"
             }
           }
           
@@ -203,9 +203,9 @@
         
         ami           = "ami-ff82f990"
         instance_type = "t2.micro"
-        key_name      =  "naitik2_key"
-        subnet_id     = "${aws_subnet.naitik2_public_subnet.id}"
-        security_groups = ["${aws_security_group.naitik2_sg.id}"]
+        key_name      =  "ankush_key"
+        subnet_id     = "${aws_subnet.ankush_public_subnet.id}"
+        security_groups = ["${aws_security_group.ankush_sg.id}"]
         associate_public_ip_address = true
         availability_zone = "ap-south-1a"
 
@@ -218,15 +218,58 @@
         resource "aws_instance" "sql" {
                     ami             =  "ami-08706cb5f68222d09"
                     instance_type   =  "t2.micro"
-                    key_name        =  "naitik2_key"
-                    subnet_id     = "${aws_subnet.naitik2_private_subnet.id}"
+                    key_name        =  "ankush_key"
+                    subnet_id     = "${aws_subnet.ankush_private_subnet.id}"
                     availability_zone = "ap-south-1a"
-                    security_groups = ["${aws_security_group.naitik2_sg_private.id}"]
+                    security_groups = ["${aws_security_group.ankush_sg_private.id}"]
                     
                     tags = {
-                     Name = "naitik2_sql"
+                     Name = "ankush_sql"
                      }
                    } 
                    
                
- 9. 
+ # OUTPUT FROM CLI(CMD):
+ 
+ 1. Run Terraform command
+          
+          terraform init
+          
+ 2. Follow the above steps(method used) . After completion, now run Another Command of terraform
+  
+          terraform apply
+          
+          
+ ![1](https://user-images.githubusercontent.com/51692515/95817301-ba51f980-0d3e-11eb-8cda-62b6d7c98af9.png)
+ 
+![2](https://user-images.githubusercontent.com/51692515/95817305-bc1bbd00-0d3e-11eb-9d30-e9831b1cbccb.png)
+
+![3](https://user-images.githubusercontent.com/51692515/95817308-bcb45380-0d3e-11eb-986c-65b117db078d.png)
+
+![4](https://user-images.githubusercontent.com/51692515/95817309-bd4cea00-0d3e-11eb-9d70-e0b424965eff.png)
+
+![5](https://user-images.githubusercontent.com/51692515/95817316-bf16ad80-0d3e-11eb-9dd2-3ed13a31ea8a.png)
+
+
+# OUTPUT FROM GUI(CONSOLE):
+![6](https://user-images.githubusercontent.com/51692515/95817507-449a5d80-0d3f-11eb-8965-e9683a7567a7.png)
+
+![7](https://user-images.githubusercontent.com/51692515/95817510-46fcb780-0d3f-11eb-8deb-3e632ce5097f.png)
+
+![8](https://user-images.githubusercontent.com/51692515/95817511-47954e00-0d3f-11eb-9f10-0abe4a564f41.png)
+
+![9](https://user-images.githubusercontent.com/51692515/95817513-48c67b00-0d3f-11eb-8a29-234aad4d896a.png)
+
+![10](https://user-images.githubusercontent.com/51692515/95817514-495f1180-0d3f-11eb-978d-d815782f5a91.png)
+
+![11](https://user-images.githubusercontent.com/51692515/95817517-4a903e80-0d3f-11eb-8470-161b7ca49aa9.png)
+
+![12](https://user-images.githubusercontent.com/51692515/95817522-4b28d500-0d3f-11eb-9e85-5c27b2d0be89.png)
+
+![13](https://user-images.githubusercontent.com/51692515/95817525-4bc16b80-0d3f-11eb-8343-fc78fc664aac.png)
+
+![14](https://user-images.githubusercontent.com/51692515/95817528-4cf29880-0d3f-11eb-829c-8eb3f8a845bf.png)
+
+![15](https://user-images.githubusercontent.com/51692515/95817531-4d8b2f00-0d3f-11eb-9060-3374f0b13125.png)
+
+
